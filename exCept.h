@@ -64,13 +64,13 @@ EXCEPT_API void exC_rewind(int except);
 #endif
 #define EXCEPT_NAMESPACE(_id) exC_##_id
 
-#if defined(TRY) || defined(CATCH) || defined(THROW) || defined(FINALLY) || defined(END_TRY)
-    #warning "One or most of TRY, CATCH, THROW, and FINALLY are already defined. Undefining them."
-    #undef TRY
-    #undef CATCH
-    #undef THROW
-    #undef FINALLY
-    #undef END_TRY
+#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY)
+    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY and EXCEPT_END_TRY are already defined. Undefining them."
+    #undef EXCEPT_TRY
+    #undef EXCEPT_CATCH
+    #undef EXCEPT_THROW
+    #undef EXCEPT_FINALLY
+    #undef EXCEPT_END_TRY
 #endif
 
 /*
@@ -88,7 +88,7 @@ EXCEPT_API void exC_rewind(int except);
 
 // No `finally` block for now.
 
-#define TRY                                         \
+#define EXCEPT_TRY                                  \
     do                                              \
     {                                               \
         if (!exC_is_stack_created())                \
@@ -106,16 +106,16 @@ EXCEPT_API void exC_rewind(int except);
             case 0:                                 \
                 {
 
-#define CATCH(x)                                    \
+#define EXCEPT_CATCH(x)                             \
                 }                                   \
                 exC_pop_stack();                    \
                 break;                              \
             case x:                                 \
                 {
 
-#define THROW(x) exC_rewind(x)
+#define EXCEPT_THROW(x) exC_rewind(x)
 
-#define END_TRY                                     \
+#define EXCEPT_END_TRY                              \
                 }                                   \
                 exC_pop_stack();                    \
                 break;                              \
@@ -123,6 +123,36 @@ EXCEPT_API void exC_rewind(int except);
         }                                           \
     } while (0)
 
+
+#if defined(EXCEPT_LOWERCASE)
+    #if defined(try) || defined(catch) || defined(throw) || defined(finally) || defined(end_try)
+        #warning "One or most of try, catch, throw, finally and end_try are already defined. Undefining them."
+        #undef try
+        #undef catch
+        #undef throw
+        #undef finally
+        #undef end_try
+    #endif
+    #define try EXCEPT_TRY
+    #define catch(x) EXCEPT_CATCH(x)
+    #define throw(x) EXCEPT_THROW(x)
+    #define finally EXCEPT_FINALLY
+    #define end_try EXCEPT_END_TRY
+#else
+    #if defined(TRY) || defined(CATCH) || defined(THROW) || defined(FINALLY) || defined(END_TRY)
+        #warning "One or most of TRY, CATCH, THROW, FINALLY and END_TRY are already defined. Undefining them."
+        #undef TRY
+        #undef CATCH
+        #undef THROW
+        #undef FINALLY
+        #undef END_TRY
+    #endif
+    #define TRY EXCEPT_TRY
+    #define CATCH(x) EXCEPT_CATCH(x)
+    #define THROW(x) EXCEPT_THROW(x)
+    #define FINALLY EXCEPT_FINALLY
+    #define END_TRY EXCEPT_END_TRY
+#endif
 
 #if defined(__cplusplus)
     }

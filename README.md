@@ -18,6 +18,11 @@ exC_set_stack_size(42);
 Then you can start using the provided macros as you would use them in higher level programming languages :
 
 ```c
+// If you want to use lowercase keywords (at your own risk), then uncomment the following line
+// (it must appear before including header, and you can not use both syntaxes)
+
+/* #define EXCEPT_LOWERCASE */
+
 #include <stdio.h>
 #include "exCept.h"
 
