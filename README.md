@@ -19,7 +19,7 @@ Then you can start using the provided macros as you would use them in higher lev
 
 ```c
 // If you want to use lowercase keywords (at your own risk), then uncomment the following line
-// (it must appear before including header, and you can not use both syntaxes)
+// (it must appear before including header, and you can not use both syntaxes in the same time)
 
 /* #define EXCEPT_LOWERCASE */
 
