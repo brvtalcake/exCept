@@ -3,12 +3,14 @@
 exCept is a two files C "library" providing exception handling in pure C.
 
 > **Note**
-> `FINALLY` is not yet supported, and probably won't ever be supported, because it is not really possible to build a "real" `finally` in C. This problem is similar to a `defer`, wich is usually imitated in C using a `goto label` or something like that to deallocate the ressources in just one place in your function, etc... The same is possible with exCept.
+> `FINALLY` is not yet supported, and probably won't ever be supported, because it is not really possible (or at least very hard) to write a "real" `finally` in C. This problem is similar to a `defer`, wich is usually imitated in C using a `goto label` or something like that to deallocate the ressources in just one place in your function, etc... The same is possible with exCept.
+> However, if you want a "real" (but non-portable) defer macro, check [this repo](https://github.com/brvtalcake/defer).
 
 ## TODO
 
 - [ ] Write a Makefile
 - [ ] Make it possible to just `CATCH(e)` and handle the exception differently according to its value
+- [ ] Potentially write a `FINALLY` macro
 
 ## Usage
 
