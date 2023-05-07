@@ -1,6 +1,6 @@
 # exCept
 
-exCept is a two files C "library" providing exception handling in pure C.
+exCept is a two files C "library" providing exception handling in pure C. `FINALLY` is not yet supported, but will be supported quite soon I guess.
 
 ## TODO
 
@@ -9,7 +9,7 @@ exCept is a two files C "library" providing exception handling in pure C.
 
 ## Usage
 
-First thing you need to do is to set the size of the jmp_buf stack (a kind of exception stack, in our case), with :
+First thing you need to do is to set the size of the jmp_buf stack (a kind of exception stack, in our case, or even the amount of TRY / CATCH statements you can nest), with :
 
 ```c
 exC_set_stack_size(42);
