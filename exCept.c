@@ -9,10 +9,12 @@
 static thread_local jmp_buf **stack = NULL;
 static thread_local bool stack_created = false;
 
-static thread_local size_t stack_size = 0;
-static thread_local bool stack_size_set = false;
-
 static thread_local size_t stack_top = 0;
+static thread_local EXCEPT_EXCEPTION_TYPE last_exception;
+
+static size_t stack_size = 0;
+static bool stack_size_set = false;
+
 
 EXCEPT_API int exC_set_stack_size(size_t size)
 {
@@ -85,11 +87,17 @@ EXCEPT_API void exC_pop_stack(void)
     stack[--stack_top] = NULL;
 }
 
-EXCEPT_API void exC_rewind(int except)
+EXCEPT_API void exC_unwind(int except)
 {
     if (!stack_created || stack_top == 0) 
     {
         return;
     }
+    last_exception = except;
     longjmp(*stack[--stack_top], except);
+}
+
+EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void)
+{
+    return last_exception;
 }

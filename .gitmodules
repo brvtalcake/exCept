@@ -1,0 +1,3 @@
+[submodule "metalang99"]
+	path = metalang99
+	url = https://github.com/brvtalcake/metalang99.git
