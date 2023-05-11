@@ -116,6 +116,36 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 #endif
 #define EXCEPT_NAMESPACE(_id) EXCEPT_CAT(exC_, _id)
 
+#if defined(EXCEPT_USE_IN_CATCH) || defined(EXCEPT_USE_IN_CATCH_PRIVATE) || defined(EXCEPT_USE_IN_CATCH_PRIVATE_IMPL) || defined(EXCEPT_USE_IN_CATCH_PRIVATE_ARITY)
+    #undef EXCEPT_USE_IN_CATCH
+    #undef EXCEPT_USE_IN_CATCH_PRIVATE
+    #undef EXCEPT_USE_IN_CATCH_PRIVATE_IMPL
+    #undef EXCEPT_USE_IN_CATCH_PRIVATE_ARITY
+#endif
+#define EXCEPT_USE_IN_CATCH_PRIVATE_IMPL(_var_to_save) v(volatile typeof(_var_to_save) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_save)) = _var_to_save;)
+#define EXCEPT_USE_IN_CATCH_PRIVATE_ARITY 1
+#define EXCEPT_USE_IN_CATCH(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_USE_IN_CATCH_PRIVATE), v(__VA_ARGS__)))
+
+#if defined(EXCEPT_LOAD) || defined(EXCEPT_LOAD_PRIVATE) || defined(EXCEPT_LOAD_PRIVATE_IMPL) || defined(EXCEPT_LOAD_PRIVATE_ARITY)
+    #undef EXCEPT_LOAD
+    #undef EXCEPT_LOAD_PRIVATE
+    #undef EXCEPT_LOAD_PRIVATE_IMPL
+    #undef EXCEPT_LOAD_PRIVATE_ARITY
+#endif
+#define EXCEPT_LOAD_PRIVATE_IMPL(_var_to_load) v(_var_to_load = EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_load));)
+#define EXCEPT_LOAD_PRIVATE_ARITY 1
+#define EXCEPT_LOAD(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_LOAD_PRIVATE), v(__VA_ARGS__)))
+
+#if defined(EXCEPT_SAVE) || defined(EXCEPT_SAVE_PRIVATE) || defined(EXCEPT_SAVE_PRIVATE_IMPL) || defined(EXCEPT_SAVE_PRIVATE_ARITY)
+    #undef EXCEPT_SAVE
+    #undef EXCEPT_SAVE_PRIVATE
+    #undef EXCEPT_SAVE_PRIVATE_IMPL
+    #undef EXCEPT_SAVE_PRIVATE_ARITY
+#endif
+#define EXCEPT_SAVE_PRIVATE_IMPL(_var_to_save) v(EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_save)) = _var_to_save;)
+#define EXCEPT_SAVE_PRIVATE_ARITY 1
+#define EXCEPT_SAVE(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_SAVE_PRIVATE), v(__VA_ARGS__)))
+
 #if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW)
     #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY and EXCEPT_RETHROW are already defined. Undefining them."
     #undef EXCEPT_TRY
@@ -181,15 +211,19 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 #define EXCEPT_FINALLY
 
 #if defined(EXCEPT_LOWERCASE)
-    #if defined(try) || defined(catch) || defined(throw) || defined(finally) || defined(end_try)
-        #warning "One or most of try, catch, throw, finally and end_try are already defined. Undefining them."
+    #if defined(try) || defined(catch) || defined(throw) || defined(finally) || defined(end_try) || defined(rethrow) || defined(load) || defined(use_in_catch) || defined(save)
+        #warning "One or most of try, catch, throw, finally, end_try, rethrow, load, use_in_catch and save are already defined. Undefining them."
         #undef try
         #undef catch
         #undef throw
         #undef finally
         #undef end_try
+        #undef rethrow
+        #undef load
+        #undef use_in_catch
+        #undef save
     #endif
-    #define try EXCEPT_TRY
+    #define try(lvl) EXCEPT_TRY(lvl)
     #define catch(x) EXCEPT_CATCH(x)
     #define throw(...)                                                                                                  \
     {                                                                                                                   \
@@ -198,16 +232,24 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     ML99_EVAL(ML99_call(ML99_if, ML99_natEq(v(EXCEPT_ARGC(__VA_ARGS__)), v(1)), v(EXCEPT_THROW(__VA_ARGS__)), v(EXCEPT_RETHROW)))
     #define finally EXCEPT_FINALLY
     #define end_try EXCEPT_END_TRY
+    #define rethrow EXCEPT_RETHROW
+    #define load(...) EXCEPT_LOAD(__VA_ARGS__)
+    #define use_in_catch(...) EXCEPT_USE_IN_CATCH(__VA_ARGS__)
+    #define save(...) EXCEPT_SAVE(__VA_ARGS__)
 #else
-    #if defined(TRY) || defined(CATCH) || defined(THROW) || defined(FINALLY) || defined(END_TRY)
-        #warning "One or most of TRY, CATCH, THROW, FINALLY and END_TRY are already defined. Undefining them."
+    #if defined(TRY) || defined(CATCH) || defined(THROW) || defined(FINALLY) || defined(END_TRY) || defined(RETHROW) || defined(LOAD) || defined(USE_IN_CATCH) || defined(SAVE)
+        #warning "One or most of TRY, CATCH, THROW, FINALLY, END_TRY, RETHROW, LOAD, USE_IN_CATCH and SAVE are already defined. Undefining them."
         #undef TRY
         #undef CATCH
         #undef THROW
         #undef FINALLY
         #undef END_TRY
+        #undef RETHROW
+        #undef LOAD
+        #undef USE_IN_CATCH
+        #undef SAVE
     #endif
-    #define TRY EXCEPT_TRY
+    #define TRY(lvl) EXCEPT_TRY(lvl)
     #define CATCH(x) EXCEPT_CATCH(x)
     #define THROW(...)                                                                                                  \
     {                                                                                                                   \
@@ -216,6 +258,10 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     ML99_EVAL(ML99_call(ML99_if, ML99_natEq(v(EXCEPT_ARGC(__VA_ARGS__)), v(1)), v(EXCEPT_THROW(__VA_ARGS__)), v(EXCEPT_RETHROW)))
     #define FINALLY EXCEPT_FINALLY
     #define END_TRY EXCEPT_END_TRY
+    #define RETHROW EXCEPT_RETHROW
+    #define LOAD(...) EXCEPT_LOAD(__VA_ARGS__)
+    #define USE_IN_CATCH(...) EXCEPT_USE_IN_CATCH(__VA_ARGS__)
+    #define SAVE(...) EXCEPT_SAVE(__VA_ARGS__)
 #endif
 
 #if defined(__cplusplus)
