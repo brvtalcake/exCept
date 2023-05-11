@@ -8,6 +8,8 @@ all : static shared
 
 clean :
 	find ./build/ -type f -delete
+	touch ./build/shared/.gitkeep
+	touch ./build/static/.gitkeep
 
 static : build/static/libexCept.a
 
