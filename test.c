@@ -48,6 +48,9 @@ void third_test_func(void)
 
 int main(int argc, char const *argv[])
 {
+    (void)argc;
+    (void)argv;
+
     // SET STACK SIZE
     fprintf(stderr, "\n");
     fprintf(stderr, "SET STACK SIZE\n");
@@ -62,6 +65,7 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "\n");
 
     // FIRST TEST
+    // Basic functionnalities
     fprintf(stderr, "\n");
     fprintf(stderr, "FIRST TEST\n");
     TRY(1)
@@ -85,6 +89,7 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "\n");
 
     // SECOND TEST
+    // Throwing from a function
     fprintf(stderr, "\n");
     fprintf(stderr, "SECOND TEST\n");
     TRY(1)
@@ -108,6 +113,7 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "\n");
 
     // THIRD TEST
+    // Rethrowing to an outer TRY block that doesn't exist
     fprintf(stderr, "\n");
     fprintf(stderr, "THIRD TEST\n");
     TRY(1)
@@ -132,6 +138,7 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "\n");
 
     // FOURTH TEST
+    // Rethrowing to an outer TRY block and nested TRY blocks in the same scope
     fprintf(stderr, "\n");
     fprintf(stderr, "FOURTH TEST\n");
     TRY(1)
@@ -174,6 +181,7 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "\n");
 
     // FIFTH TEST
+    // Rethrowing from a function to another
     fprintf(stderr, "\n");
     fprintf(stderr, "FIFTH TEST\n");
     TRY(1)
@@ -196,5 +204,46 @@ int main(int argc, char const *argv[])
     }
     END_TRY;
     fprintf(stderr, "\n");
+
+    // SIXTH TEST
+    // "Synchronizing" changes (use volatile variables)
+    // See https://godbolt.org/z/8r7rP6vh8
+    fprintf(stderr, "\n");
+    fprintf(stderr, "SIXTH TEST\n");
+    unsigned int i = 0;
+    unsigned int j = 0;
+    unsigned int k = 0;
+    fprintf(stderr, "i (before TRY) = %u\n", i);
+    fprintf(stderr, "j (before TRY) = %u\n", j);
+    fprintf(stderr, "k (before TRY) = %u\n", k);
+    SYNC_CHANGES(i, j);
+    TRY(1)
+    {
+        k = 1;
+        
+        i = 1;
+        SAVE(i);
+        
+        VAR(j) = 1;
+        
+        fprintf(stderr, "Modifying i, j and k (in TRY)\n");
+        
+        THROW(1);
+    }
+    CATCH(1)
+    {
+        LOAD(i, j);
+        fprintf(stderr, "CATCH(1)\n");
+        fprintf(stderr, "i (in CATCH) = %u\n", i);
+        fprintf(stderr, "j (in CATCH) = %u\n", j);
+        fprintf(stderr, "k (in CATCH) = %u\n", k);
+    }
+    END_TRY;
+    LOAD(i, j);
+    fprintf(stderr, "i (after TRY) = %u\n", i);
+    fprintf(stderr, "j (after TRY) = %u\n", j);
+    fprintf(stderr, "k (after TRY) = %u\t(Could actually be anything. For more informations, see https://godbolt.org/z/8r7rP6vh8 (example taken from cppreference and modified))\n", k);
+    fprintf(stderr, "\n");
+
     return 0;
 }

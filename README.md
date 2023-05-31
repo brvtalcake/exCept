@@ -8,9 +8,11 @@ exCept is a two files C "library" providing exception handling in pure C.
 
 ## TODO
 
-- [ ] Write a Makefile
+- [x] Write a Makefile
 - [ ] Make it possible to just `CATCH(e)` and handle the exception differently according to its value
 - [ ] Potentially write a `FINALLY` macro
+- [ ] Write a MAY_THROW macro for function (wrapper around _Noreturn and / or compiler specific function attributes)
+- [ ] Document the usage of `SYNC_CHANGES`, `VAR`, `LOAD`, and `SAVE`
 
 ## Usage
 

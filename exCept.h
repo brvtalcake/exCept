@@ -116,15 +116,15 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 #endif
 #define EXCEPT_NAMESPACE(_id) EXCEPT_CAT(exC_, _id)
 
-#if defined(EXCEPT_USE_IN_CATCH) || defined(EXCEPT_USE_IN_CATCH_PRIVATE) || defined(EXCEPT_USE_IN_CATCH_PRIVATE_IMPL) || defined(EXCEPT_USE_IN_CATCH_PRIVATE_ARITY)
-    #undef EXCEPT_USE_IN_CATCH
-    #undef EXCEPT_USE_IN_CATCH_PRIVATE
-    #undef EXCEPT_USE_IN_CATCH_PRIVATE_IMPL
-    #undef EXCEPT_USE_IN_CATCH_PRIVATE_ARITY
+#if defined(EXCEPT_SYNC_CHANGES) || defined(EXCEPT_SYNC_CHANGES_PRIVATE) || defined(EXCEPT_SYNC_CHANGES_PRIVATE_IMPL) || defined(EXCEPT_SYNC_CHANGES_PRIVATE_ARITY)
+    #undef EXCEPT_SYNC_CHANGES
+    #undef EXCEPT_SYNC_CHANGES_PRIVATE
+    #undef EXCEPT_SYNC_CHANGES_PRIVATE_IMPL
+    #undef EXCEPT_SYNC_CHANGES_PRIVATE_ARITY
 #endif
-#define EXCEPT_USE_IN_CATCH_PRIVATE_IMPL(_var_to_save) v(volatile typeof(_var_to_save) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_save)) = _var_to_save;)
-#define EXCEPT_USE_IN_CATCH_PRIVATE_ARITY 1
-#define EXCEPT_USE_IN_CATCH(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_USE_IN_CATCH_PRIVATE), v(__VA_ARGS__)))
+#define EXCEPT_SYNC_CHANGES_PRIVATE_IMPL(_var_to_save) v(volatile typeof(_var_to_save) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_save)) = _var_to_save;)
+#define EXCEPT_SYNC_CHANGES_PRIVATE_ARITY 1
+#define EXCEPT_SYNC_CHANGES(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_SYNC_CHANGES_PRIVATE), v(__VA_ARGS__)))
 
 #if defined(EXCEPT_LOAD) || defined(EXCEPT_LOAD_PRIVATE) || defined(EXCEPT_LOAD_PRIVATE_IMPL) || defined(EXCEPT_LOAD_PRIVATE_ARITY)
     #undef EXCEPT_LOAD
@@ -146,14 +146,15 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 #define EXCEPT_SAVE_PRIVATE_ARITY 1
 #define EXCEPT_SAVE(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_SAVE_PRIVATE), v(__VA_ARGS__)))
 
-#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW)
-    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY and EXCEPT_RETHROW are already defined. Undefining them."
+#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW) || defined(EXCEPT_VAR)
+    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY, EXCEPT_RETHROW and EXCEPT_VAR are already defined. Undefining them."
     #undef EXCEPT_TRY
     #undef EXCEPT_CATCH
     #undef EXCEPT_THROW
     #undef EXCEPT_FINALLY
     #undef EXCEPT_END_TRY
     #undef EXCEPT_RETHROW
+    #undef EXCEPT_VAR
 #endif
 
 /*
@@ -208,11 +209,13 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 
 #define EXCEPT_RETHROW exC_unwind(exC_last_exception())
 
+#define EXCEPT_VAR(_var) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var))
+
 #define EXCEPT_FINALLY
 
 #if defined(EXCEPT_LOWERCASE)
-    #if defined(try) || defined(catch) || defined(throw) || defined(finally) || defined(end_try) || defined(rethrow) || defined(load) || defined(use_in_catch) || defined(save)
-        #warning "One or most of try, catch, throw, finally, end_try, rethrow, load, use_in_catch and save are already defined. Undefining them."
+    #if defined(try) || defined(catch) || defined(throw) || defined(finally) || defined(end_try) || defined(rethrow) || defined(load) || defined(sync_changes) || defined(save) || defined(var)
+        #warning "One or most of try, catch, throw, finally, end_try, rethrow, load, sync_changes, save and var are already defined. Undefining them."
         #undef try
         #undef catch
         #undef throw
@@ -220,8 +223,9 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
         #undef end_try
         #undef rethrow
         #undef load
-        #undef use_in_catch
+        #undef sync_changes
         #undef save
+        #undef var
     #endif
     #define try(lvl) EXCEPT_TRY(lvl)
     #define catch(x) EXCEPT_CATCH(x)
@@ -234,11 +238,12 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     #define end_try EXCEPT_END_TRY
     #define rethrow EXCEPT_RETHROW
     #define load(...) EXCEPT_LOAD(__VA_ARGS__)
-    #define use_in_catch(...) EXCEPT_USE_IN_CATCH(__VA_ARGS__)
+    #define sync_changes(...) EXCEPT_SYNC_CHANGES(__VA_ARGS__)
     #define save(...) EXCEPT_SAVE(__VA_ARGS__)
+    #define var(...) EXCEPT_VAR(__VA_ARGS__)
 #else
-    #if defined(TRY) || defined(CATCH) || defined(THROW) || defined(FINALLY) || defined(END_TRY) || defined(RETHROW) || defined(LOAD) || defined(USE_IN_CATCH) || defined(SAVE)
-        #warning "One or most of TRY, CATCH, THROW, FINALLY, END_TRY, RETHROW, LOAD, USE_IN_CATCH and SAVE are already defined. Undefining them."
+    #if defined(TRY) || defined(CATCH) || defined(THROW) || defined(FINALLY) || defined(END_TRY) || defined(RETHROW) || defined(LOAD) || defined(SYNC_CHANGES) || defined(SAVE) || defined(VAR)
+        #warning "One or most of TRY, CATCH, THROW, FINALLY, END_TRY, RETHROW, LOAD, SYNC_CHANGES, SAVE and VAR are already defined. Undefining them."
         #undef TRY
         #undef CATCH
         #undef THROW
@@ -246,8 +251,9 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
         #undef END_TRY
         #undef RETHROW
         #undef LOAD
-        #undef USE_IN_CATCH
+        #undef SYNC_CHANGES
         #undef SAVE
+        #undef VAR
     #endif
     #define TRY(lvl) EXCEPT_TRY(lvl)
     #define CATCH(x) EXCEPT_CATCH(x)
@@ -260,8 +266,9 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     #define END_TRY EXCEPT_END_TRY
     #define RETHROW EXCEPT_RETHROW
     #define LOAD(...) EXCEPT_LOAD(__VA_ARGS__)
-    #define USE_IN_CATCH(...) EXCEPT_USE_IN_CATCH(__VA_ARGS__)
+    #define SYNC_CHANGES(...) EXCEPT_SYNC_CHANGES(__VA_ARGS__)
     #define SAVE(...) EXCEPT_SAVE(__VA_ARGS__)
+    #define VAR(...) EXCEPT_VAR(__VA_ARGS__)
 #endif
 
 #if defined(__cplusplus)
