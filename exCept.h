@@ -31,6 +31,8 @@
 
 #include <metalang99.h>
 
+#include <chaos/preprocessor.h>
+
 #if defined(__cplusplus)
     extern "C" {
 #endif
@@ -92,6 +94,9 @@
 #if !defined(EXCEPT_EXCEPTION_TYPE)
     #define EXCEPT_EXCEPTION_TYPE unsigned int
 #endif
+#if !defined(EXCEPT_TYPEOF)
+    #define EXCEPT_TYPEOF(_var) typeof(_var)
+#endif
 
 EXCEPT_API                  int  exC_set_stack_size(size_t size);
 EXCEPT_API                  int  exC_is_stack_size_set(void);
@@ -122,7 +127,7 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     #undef EXCEPT_SYNC_CHANGES_PRIVATE_IMPL
     #undef EXCEPT_SYNC_CHANGES_PRIVATE_ARITY
 #endif
-#define EXCEPT_SYNC_CHANGES_PRIVATE_IMPL(_var_to_save) v(volatile typeof(_var_to_save) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_save)) = _var_to_save;)
+#define EXCEPT_SYNC_CHANGES_PRIVATE_IMPL(_var_to_save) v(volatile EXCEPT_TYPEOF(_var_to_save) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var_to_save)) = _var_to_save;)
 #define EXCEPT_SYNC_CHANGES_PRIVATE_ARITY 1
 #define EXCEPT_SYNC_CHANGES(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_SYNC_CHANGES_PRIVATE), v(__VA_ARGS__)))
 
@@ -146,10 +151,13 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 #define EXCEPT_SAVE_PRIVATE_ARITY 1
 #define EXCEPT_SAVE(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_SAVE_PRIVATE), v(__VA_ARGS__)))
 
-#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW) || defined(EXCEPT_VAR)
-    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY, EXCEPT_RETHROW and EXCEPT_VAR are already defined. Undefining them."
+#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW) || defined(EXCEPT_VAR) || defined(EXCEPT_CATCH_NUM) || defined(EXCEPT_CATCH_UNNAMED) || defined(EXCEPT_CATCH_NAMED_VAR)
+    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY, EXCEPT_RETHROW, EXCEPT_VAR, EXCEPT_CATCH_NUM, EXCEPT_CATCH_UNNAMED and EXCEPT_CATCH_NAMED_VAR are already defined. Undefining them."
     #undef EXCEPT_TRY
     #undef EXCEPT_CATCH
+    #undef EXCEPT_CATCH_NUM
+    #undef EXCEPT_CATCH_UNNAMED
+    #undef EXCEPT_CATCH_NAMED_VAR
     #undef EXCEPT_THROW
     #undef EXCEPT_FINALLY
     #undef EXCEPT_END_TRY
@@ -190,12 +198,42 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
             case 0:                                                               \
                 {
 
-#define EXCEPT_CATCH(x)          \
+#define EXCEPT_CATCH_NUM(x)      \
                 }                \
                 exC_pop_stack(); \
                 break;           \
             case x:              \
                 {
+
+#define EXCEPT_CATCH_UNNAMED     \
+                }                \
+                exC_pop_stack(); \
+                break;           \
+            default:             \
+                {
+
+#define EXCEPT_CATCH_NAMED_VAR(_var)                                \
+                }                                                   \
+                exC_pop_stack();                                    \
+                break;                                              \
+            default:                                                \
+                EXCEPT_EXCEPTION_TYPE _var = exC_last_exception();  \
+                {
+
+#define EXCEPT_CATCH(...) \
+    CHAOS_PP_VARIADIC_IF(CHAOS_PP_EQUAL(EXCEPT_ARGC(__VA_ARGS__), 1))               \
+    (                                                                               \
+        CHAOS_PP_VARIADIC_IF(CHAOS_PP_IS_NUMERIC(EXCEPT_FIRST_ARG(__VA_ARGS__)))    \
+        (                                                                           \
+            EXCEPT_CATCH_NUM(EXCEPT_FIRST_ARG(__VA_ARGS__))                         \
+        )                                                                           \
+        (                                                                           \
+            EXCEPT_CATCH_NAMED_VAR(EXCEPT_FIRST_ARG(__VA_ARGS__))                   \
+        )                                                                           \
+    )                                                                               \
+    (                                                                               \
+        EXCEPT_CATCH_UNNAMED                                                        \
+    )
 
 #define EXCEPT_THROW(...) exC_unwind(EXCEPT_FIRST_ARG(__VA_ARGS__))
 
@@ -203,7 +241,6 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
                 }                \
                 exC_pop_stack(); \
                 break;           \
-            default:             \
         }                        \
     } while (0)
 
@@ -228,7 +265,7 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
         #undef var
     #endif
     #define try(lvl) EXCEPT_TRY(lvl)
-    #define catch(x) EXCEPT_CATCH(x)
+    #define catch(...) EXCEPT_CATCH(__VA_ARGS__)
     #define throw(...)                                                                                                  \
     {                                                                                                                   \
         static_assert(EXCEPT_ARGC(__VA_ARGS__) == 1 || EXCEPT_ARGC(__VA_ARGS__) == 0, "throw takes 0 or 1 argument.");  \
@@ -256,7 +293,7 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
         #undef VAR
     #endif
     #define TRY(lvl) EXCEPT_TRY(lvl)
-    #define CATCH(x) EXCEPT_CATCH(x)
+    #define CATCH(...) EXCEPT_CATCH(__VA_ARGS__)
     #define THROW(...)                                                                                                  \
     {                                                                                                                   \
         static_assert(EXCEPT_ARGC(__VA_ARGS__) == 1 || EXCEPT_ARGC(__VA_ARGS__) == 0, "THROW takes 0 or 1 argument.");  \

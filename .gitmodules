@@ -1,3 +1,6 @@
 [submodule "metalang99"]
 	path = metalang99
 	url = https://github.com/brvtalcake/metalang99.git
+[submodule "chaos-pp"]
+	path = chaos-pp
+	url = https://github.com/rofl0r/chaos-pp.git
