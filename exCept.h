@@ -165,21 +165,6 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     #undef EXCEPT_VAR
 #endif
 
-/*
- * USAGE: 
- * TRY {
- *    // code
- * } CATCH(1) {
- *   // code
- * } CATCH(2) {
- *  // code
- * } FINALLY { // optional
- * // code
- * } END_TRY;
- */
-
-// No `finally` block for now.
-
 #define EXCEPT_TRY(_nesting_lvl)                                                  \
     do                                                                            \
     {                                                                             \
@@ -310,6 +295,25 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 
 #if defined(__cplusplus)
     }
+#endif
+
+#if defined(ALWAYS_THROWS)
+    #warning "ALWAYS_THROWS is already defined. Undefining it."
+    #undef ALWAYS_THROWS
+#endif
+#if __STDC_VERSION__ >= 201112L && !(__STDC_VERSION__ >= 202300L)
+    #include <stdnoreturn.h>
+    #define ALWAYS_THROWS noreturn
+#elif __STDC_VERSION__ >= 202300L
+    #define ALWAYS_THROWS [[noreturn]]
+#else
+    #if defined(__GNUC__) || defined(__clang__)
+        #define ALWAYS_THROWS __attribute__((noreturn))
+    #elif defined(_MSC_VER)
+        #define ALWAYS_THROWS __declspec(noreturn)
+    #else
+        #define ALWAYS_THROWS
+    #endif
 #endif
 
 #endif // EXCEPT_H
