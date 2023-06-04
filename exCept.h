@@ -105,7 +105,7 @@ EXCEPT_API                  int  exC_is_stack_created(void);
 EXCEPT_API                  void exC_destroy_stack(void);
 EXCEPT_API                  int  exC_push_stack(jmp_buf* env);
 EXCEPT_API                  void exC_pop_stack(void);
-EXCEPT_API                  void exC_unwind(int except);
+EXCEPT_API                  void exC_unwind(EXCEPT_EXCEPTION_TYPE except);
 EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 
 #if defined(EXCEPT_CAT) || defined(EXCEPT_CAT_PRIMITIVE)

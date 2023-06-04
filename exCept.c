@@ -111,14 +111,14 @@ EXCEPT_API void exC_pop_stack(void)
     stack[--stack_top] = NULL;
 }
 
-EXCEPT_API void exC_unwind(int except)
+EXCEPT_API void exC_unwind(EXCEPT_EXCEPTION_TYPE except)
 {
     if (!stack_created || stack_top == 0) 
     {
         return;
     }
     last_exception = except;
-    longjmp(*stack[--stack_top], except);
+    longjmp(*stack[--stack_top], (int) except); // except must be 0 < except <= 512
 }
 
 EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void)
