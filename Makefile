@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -O3 -Wall -Wextra -Werror $(USER_CFLAGS)
-INC = -I./metalang99/include/ -I./chaos-pp/ 
+INC ?= -I./metalang99/include/ -I./chaos-pp/ 
 
 .PHONY : all static shared clean test
 
