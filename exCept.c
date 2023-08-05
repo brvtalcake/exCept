@@ -118,10 +118,22 @@ EXCEPT_API void exC_unwind(EXCEPT_EXCEPTION_TYPE except)
         return;
     }
     last_exception = except;
-    longjmp(*stack[--stack_top], (int) except); // except must be 0 < except <= 512
+    longjmp(*stack[--stack_top], (int) except); // `except` must be 0 < except <= 512
 }
 
 EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void)
 {
     return last_exception;
 }
+
+// TODO
+#if 0
+EXCEPT_API void exC_terminate(void)
+{
+    if (!stack_created) 
+    {
+        return;
+    }
+    
+}
+#endif

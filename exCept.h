@@ -25,6 +25,10 @@
 #ifndef EXCEPT_H
 #define EXCEPT_H
 
+// TODO: Implement termination handler support, and `noexcept` support.
+
+#include "exCept_user_config.h"
+
 #include <setjmp.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -81,8 +85,17 @@
     #undef EXCEPT_ARGC
     #undef EXCEPT_ARGC_PRIVATE
 #endif
+#if 0
 #define EXCEPT_ARGC(...) EXCEPT_ARGC_PRIVATE(0, ## __VA_ARGS__, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 #define EXCEPT_ARGC_PRIVATE(_0, _1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_, _10_, _11_, _12_, _13_, _14_, _15_, _16_, _17_, _18_, _19_, _20_, _21_, _22_, _23_, _24_, _25_, _26_, _27_, _28_, _29_, _30_, _31_, _32_, _33_, _34_, _35_, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, _66, _67, _68, _69, _70, _count, ...) _count
+#else
+#define EXCEPT_ARGC(...)                                        \
+    CHAOS_PP_EXPR(                                              \
+        CHAOS_PP_VARIADIC_IF(CHAOS_PP_IS_EMPTY(__VA_ARGS__))    \
+            (0)                                                 \
+            (CHAOS_PP_VARIADIC_SIZE(__VA_ARGS__))               \
+    )
+#endif
 
 #if defined(EXCEPT_FIRST_ARG) || defined(EXCEPT_FIRST_ARG_PRIVATE)
     #undef EXCEPT_FIRST_ARG
@@ -95,7 +108,7 @@
     #define EXCEPT_EXCEPTION_TYPE unsigned int
 #endif
 #if !defined(EXCEPT_TYPEOF)
-    #define EXCEPT_TYPEOF(_var) typeof(_var)
+    #define EXCEPT_TYPEOF(_var) __typeof__(_var)
 #endif
 
 EXCEPT_API                  int  exC_set_stack_size(size_t size);
@@ -151,8 +164,8 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
 #define EXCEPT_SAVE_PRIVATE_ARITY 1
 #define EXCEPT_SAVE(...) ML99_EVAL(ML99_call(ML99_variadicsForEach, v(EXCEPT_SAVE_PRIVATE), v(__VA_ARGS__)))
 
-#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW) || defined(EXCEPT_VAR) || defined(EXCEPT_CATCH_NUM) || defined(EXCEPT_CATCH_UNNAMED) || defined(EXCEPT_CATCH_NAMED_VAR)
-    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY, EXCEPT_RETHROW, EXCEPT_VAR, EXCEPT_CATCH_NUM, EXCEPT_CATCH_UNNAMED and EXCEPT_CATCH_NAMED_VAR are already defined. Undefining them."
+#if defined(EXCEPT_TRY) || defined(EXCEPT_CATCH) || defined(EXCEPT_THROW) || defined(EXCEPT_FINALLY) || defined(EXCEPT_END_TRY) || defined(EXCEPT_RETHROW) || defined(EXCEPT_VAR) || defined(EXCEPT_CATCH_NUM) || defined(EXCEPT_CATCH_UNNAMED) || defined(EXCEPT_CATCH_NAMED_VAR) || defined(EXCEPT_TERMINATE)
+    #warning "One or most of EXCEPT_TRY, EXCEPT_CATCH, EXCEPT_THROW, EXCEPT_FINALLY, EXCEPT_END_TRY, EXCEPT_RETHROW, EXCEPT_VAR, EXCEPT_CATCH_NUM, EXCEPT_CATCH_UNNAMED, EXCEPT_CATCH_NAMED_VAR, EXCEPT_TERMINATE is already defined. Undefining them."
     #undef EXCEPT_TRY
     #undef EXCEPT_CATCH
     #undef EXCEPT_CATCH_NUM
@@ -163,6 +176,7 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     #undef EXCEPT_END_TRY
     #undef EXCEPT_RETHROW
     #undef EXCEPT_VAR
+    #undef EXCEPT_TERMINATE
 #endif
 
 #define EXCEPT_TRY(_nesting_lvl)                                                  \
@@ -301,14 +315,14 @@ EXCEPT_API EXCEPT_EXCEPTION_TYPE exC_last_exception(void);
     #warning "ALWAYS_THROWS is already defined. Undefining it."
     #undef ALWAYS_THROWS
 #endif
-#if __STDC_VERSION__ >= 201112L && !(__STDC_VERSION__ >= 202300L)
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !(__STDC_VERSION__ >= 202300L) && !defined(__cplusplus)
     #include <stdnoreturn.h>
     #define ALWAYS_THROWS noreturn
-#elif __STDC_VERSION__ >= 202300L
+#elif defined(__cplusplus) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202300L)
     #define ALWAYS_THROWS [[noreturn]]
 #else
     #if defined(__GNUC__) || defined(__clang__)
-        #define ALWAYS_THROWS __attribute__((noreturn))
+        #define ALWAYS_THROWS __attribute__((__noreturn__))
     #elif defined(_MSC_VER)
         #define ALWAYS_THROWS __declspec(noreturn)
     #else
