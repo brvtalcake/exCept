@@ -18,7 +18,7 @@ void second_test_func(void)
 void third_test_func(void)
 {
     fprintf(stderr, "third_test_func\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY (third_test_func)\n");
         first_test_func();
@@ -51,24 +51,14 @@ int main(int argc, char const *argv[])
     (void)argc;
     (void)argv;
 
-    // SET STACK SIZE
-    fprintf(stderr, "\n");
-    fprintf(stderr, "SET STACK SIZE\n");
-    if (exC_set_stack_size(3))
-    {
-        fprintf(stderr, "Stack size already set.\n");
-    }
-    if (exC_set_stack_size(20))
-    {
-        fprintf(stderr, "Stack size already set.\n");
-    }
-    fprintf(stderr, "\n");
+    exC_global_setup(42, 0);
+    exC_thrd_setup();
 
     // FIRST TEST
     // Basic functionnalities
     fprintf(stderr, "\n");
     fprintf(stderr, "FIRST TEST\n(Basic functionnalities)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         THROW(1);
@@ -92,7 +82,7 @@ int main(int argc, char const *argv[])
     // Throwing from a function
     fprintf(stderr, "\n");
     fprintf(stderr, "SECOND TEST\n(Throwing from a function)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         second_test_func();
@@ -116,7 +106,7 @@ int main(int argc, char const *argv[])
     // Rethrowing to an outer TRY block that doesn't exist
     fprintf(stderr, "\n");
     fprintf(stderr, "THIRD TEST\n(Rethrowing to an outer TRY block that doesn't exist)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         THROW(2);
@@ -128,7 +118,7 @@ int main(int argc, char const *argv[])
     CATCH(2)
     {
         fprintf(stderr, "CATCH(2)\n");
-        THROW(); // won't do anything, because it is not nested in a previous TRY block
+        // THROW(); // will crash with an error if uncommented
     }
     CATCH(3)
     {
@@ -141,10 +131,10 @@ int main(int argc, char const *argv[])
     // Rethrowing to an outer TRY block, nested TRY blocks in the same scope
     fprintf(stderr, "\n");
     fprintf(stderr, "FOURTH TEST\n(Rethrowing to an outer TRY block, nested TRY blocks in the same scope)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY (outer)\n");
-        TRY(2)
+        TRY
         {
             fprintf(stderr, "TRY (inner)\n");
             THROW(2); // will be caught by the outer TRY block
@@ -184,7 +174,7 @@ int main(int argc, char const *argv[])
     // Rethrowing from a function to another
     fprintf(stderr, "\n");
     fprintf(stderr, "FIFTH TEST\n(Rethrowing from a function to another)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         third_test_func();
@@ -217,7 +207,7 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "j (before TRY) = %u\n", j);
     fprintf(stderr, "k (before TRY) = %u\n", k);
     SYNC_CHANGES(i, j);
-    TRY(1)
+    TRY
     {
         k = 1;
         
@@ -249,7 +239,7 @@ int main(int argc, char const *argv[])
     // Different flavours of CATCH
     fprintf(stderr, "\n");
     fprintf(stderr, "SEVENTH TEST\n(Different flavours of CATCH)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         THROW(4);
@@ -278,7 +268,7 @@ int main(int argc, char const *argv[])
     // Different flavours of CATCH
     fprintf(stderr, "\n");
     fprintf(stderr, "EIGHTH TEST\n(Different flavours of CATCH)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         THROW(4);
@@ -294,7 +284,7 @@ int main(int argc, char const *argv[])
     // No CATCH
     fprintf(stderr, "\n");
     fprintf(stderr, "NINTH TEST\n(No CATCH)\n");
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
         THROW(4);
@@ -309,14 +299,15 @@ int main(int argc, char const *argv[])
     #define EXCEPTION_FOO 1
     #define EXCEPTION_BAR 2
     #define EXCEPTION_BAZ 3
-    TRY(1)
+    TRY
     {
         fprintf(stderr, "TRY\n");
-        THROW(EXCEPTION_FOO);
+        THROW(EXCEPTION_FOO, "this is a \"what\" message");
     }
     CATCH(EXCEPTION_FOO)
     {
         fprintf(stderr, "CATCH(EXCEPTION_FOO) where EXCEPTION_FOO = %d\n", EXCEPTION_FOO);
+        fprintf(stderr, "what = %s\n", WHAT);
     }
     CATCH(EXCEPTION_BAR)
     {

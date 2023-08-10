@@ -1,15 +1,25 @@
 CC = gcc
-CFLAGS = -O3 -Wall -Wextra -Werror $(USER_CFLAGS)
-INC ?= -I./metalang99/include/ -I./chaos-pp/ 
+CFLAGS = -Wall -Wextra -Werror $(USER_CFLAGS)
 
-.PHONY : all static shared clean test
+ifndef DEBUG
+CFLAGS += -O3 -flto
+else
+CFLAGS += -ggdb3 -O0
+endif
 
-all : static shared test
+INC ?= -I./metalang99/include/ -I./chaos-pp/ -I./ 
+
+TEST_FILES = $(wildcard tests/*.c)
+TESTS = $(TEST_FILES:tests/%.c=build/%)
+
+.PHONY : all static shared clean test demo
+
+all : static shared test demo
 
 clean :
-	find ./build/ -type f -delete
-	touch ./build/shared/.gitkeep
-	touch ./build/static/.gitkeep
+	@find ./build/ -type f -printf 'Deleting %h/%f\n' -delete
+	@touch ./build/shared/.gitkeep
+	@touch ./build/static/.gitkeep
 
 static : build/static/libexCept.a
 
@@ -27,6 +37,17 @@ build/shared/libexCept.so : build/shared_exCept.o
 build/shared_exCept.o : exCept.c exCept.h
 	$(CC) $(CFLAGS) $(INC) -fPIC $< -c -o $@
 
-test : build/static/libexCept.a test.c
-	$(CC) $(CFLAGS) -Wno-error=clobbered $(INC) test.c -o build/test -lexCept -L./build/static/
-	./build/test
+build/demo : build/static/libexCept.a demo.c
+	$(CC) $(CFLAGS) -Wno-error=clobbered $(INC) demo.c -o $@ -lexCept -L./build/static/
+
+build/% : tests/%.c build/static/libexCept.a
+	$(CC) $(CFLAGS) $(INC) $< -o $@ -lexCept -L./build/static/
+
+test : build/static/libexCept.a $(TESTS)
+	@for test in $(TESTS); do \
+		echo "Running $$test"; \
+		$$test; \
+	done
+
+demo : build/static/libexCept.a build/demo
+	./build/demo
