@@ -8,9 +8,7 @@
 
 #define DIV_BY_ZERO_EXCEPTION 1
 
-int nat_tab[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-
-atomic_bool can_start = ATOMIC_VAR_INIT(0);
+atomic_bool can_start = ATOMIC_VAR_INIT(false);
 
 static inline double divide(int a, int b)
 {

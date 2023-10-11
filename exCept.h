@@ -134,7 +134,7 @@ _ISEMPTY(                                                               \
 #else
 #define EXCEPT_ARGC(...)                                        \
     CHAOS_PP_EXPR(                                              \
-        CHAOS_PP_VARIADIC_IF(ISEMPTY(__VA_ARGS__))             \
+        CHAOS_PP_VARIADIC_IF(ISEMPTY(__VA_ARGS__))              \
             (0)                                                 \
             (CHAOS_PP_VARIADIC_SIZE(__VA_ARGS__))               \
     )
@@ -161,17 +161,17 @@ _ISEMPTY(                                                               \
     #else
         #error "EXCEPT_TERM_HANDLER_TYPE_LIST is defined but EXCEPT_TERM_HANDLER_SIG is not defined."
     #endif
-    #if !defined(NOEXCEPT_TERMINATE_DEFAULT_ARGS)
-        #define NOEXCEPT_TERMINATE_DEFAULT_ARGS EXIT_FAILURE
+    #if !defined(TERMINATE_DEFAULT_ERROR_ARGS)
+        #define TERMINATE_DEFAULT_ERROR_ARGS EXIT_FAILURE
     #else
-        #error "NOEXCEPT_TERMINATE_DEFAULT_ARGS is defined but EXCEPT_TERM_HANDLER_SIG is not defined."
+        #error "TERMINATE_DEFAULT_ERROR_ARGS is defined but EXCEPT_TERM_HANDLER_SIG is not defined."
     #endif
 #else
     #if !defined(EXCEPT_TERM_HANDLER_TYPE_LIST)
         #error "EXCEPT_TERM_HANDLER_SIG is defined but EXCEPT_TERM_HANDLER_TYPE_LIST is not defined."
     #endif
-    #if !defined(NOEXCEPT_TERMINATE_DEFAULT_ARGS)
-        #error "EXCEPT_TERM_HANDLER_SIG is defined but NOEXCEPT_TERMINATE_DEFAULT_ARGS is not defined."
+    #if !defined(TERMINATE_DEFAULT_ERROR_ARGS)
+        #error "EXCEPT_TERM_HANDLER_SIG is defined but TERMINATE_DEFAULT_ERROR_ARGS is not defined."
     #endif
     typedef EXCEPT_TYPEOF(EXCEPT_TERM_HANDLER_SIG) term_handler_t;
 #endif
@@ -179,8 +179,8 @@ _ISEMPTY(                                                               \
     #undef EXCEPT_TERM_HANDLER_ARGC
 #endif
 #define EXCEPT_TERM_HANDLER_ARGC EXCEPT_ARGC(EXCEPT_TERM_HANDLER_TYPE_LIST)
-static_assert(EXCEPT_TERM_HANDLER_ARGC >= 1, "EXCEPT_TERM_HANDLER_TYPE_LIST must have a size greater than or equal to 1.");
-static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must have a size less than or equal to 8.");
+static_assert(EXCEPT_TERM_HANDLER_ARGC >= 1, "EXCEPT_TERM_HANDLER_TYPE_LIST must be greater than or equal to 1.");
+static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must be less than or equal to 8.");
 
 #if defined(EXCEPT_CAT) || defined(EXCEPT_CAT_PRIMITIVE)
     #undef EXCEPT_CAT
@@ -273,7 +273,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
                             "exC_push_stack failed. Please check that the stack " \
                             "has been created and that the stack size is "        \
                             "sufficient.\n");                                     \
-            exit(EXIT_FAILURE);                                                   \
+            exC_terminate(TERMINATE_DEFAULT_ERROR_ARGS);                          \
         }                                                                         \
         switch (setjmp(EXCEPT_NAMESPACE(EXCEPT_CAT(env, _nesting_lvl))))          \
         {                                                                         \
@@ -300,7 +300,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
                             "exC_push_stack failed. Please check that the stack "   \
                             "has been created and that the stack size is "          \
                             "sufficient.\n");                                       \
-            exit(EXIT_FAILURE);                                                     \
+            exC_terminate(TERMINATE_DEFAULT_ERROR_ARGS);                            \
         }                                                                           \
         switch (                                                                    \
             setjmp(EXCEPT_NAMESPACE(EXCEPT_CAT(env, EXCEPT_SUB(__COUNTER__, 2)))))  \
@@ -309,7 +309,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
                 {
 #elif defined(__LINE__)
 #define EXCEPT_TRY                                                                  \
-    do{if(!exC_is_global_setup_done()||!exC_is_thread_setup_done()){fprintf(stderr,P_RED P_BOLD "EXCEPT ERROR: " P_RESET "exC_global_setup and/or exC_thread_setup have not been called. Please call them before using any of the macros provided by exCept.h.\n");exit(EXIT_FAILURE);}jmp_buf EXCEPT_NAMESPACE(EXCEPT_CAT(env,__LINE__));if(exC_push_stack(&EXCEPT_NAMESPACE(EXCEPT_CAT(env,__LINE__)))!=0){fprintf(stderr,P_RED P_BOLD "EXCEPT ERROR: " P_RESET "exC_push_stack failed. Please check that the stack has been created and that the stack size is sufficient.\n");exit(EXIT_FAILURE);}switch(setjmp(EXCEPT_NAMESPACE(EXCEPT_CAT(env,__LINE__)))){case 0:{
+    do{if(!exC_is_global_setup_done()||!exC_is_thread_setup_done()){fprintf(stderr,P_RED P_BOLD "EXCEPT ERROR: " P_RESET "exC_global_setup and/or exC_thread_setup have not been called. Please call them before using any of the macros provided by exCept.h.\n");exit(EXIT_FAILURE);}jmp_buf EXCEPT_NAMESPACE(EXCEPT_CAT(env,__LINE__));if(exC_push_stack(&EXCEPT_NAMESPACE(EXCEPT_CAT(env,__LINE__)))!=0){fprintf(stderr,P_RED P_BOLD "EXCEPT ERROR: " P_RESET "exC_push_stack failed. Please check that the stack has been created and that the stack size is sufficient.\n");exC_terminate(TERMINATE_DEFAULT_ERROR_ARGS);}switch(setjmp(EXCEPT_NAMESPACE(EXCEPT_CAT(env,__LINE__)))){case 0:{
 #else
     #error "Neither __COUNTER__ nor __LINE__ are defined. Cannot use EXCEPT_TRY."
 #endif
@@ -357,7 +357,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
     #undef EXCEPT_ARG_1_AND_2
 #endif
 #define EXCEPT_ARG_1_AND_2(_1, _2, ...) _1, _2
-#define EXCEPT_THROW(...) exC_unwind(EXCEPT_ARG_1_AND_2(__VA_ARGS__), NULL)
+#define EXCEPT_THROW(...) exC_unwind(EXCEPT_ARG_1_AND_2(__VA_ARGS__, NULL), NULL)
 
 #define EXCEPT_END_TRY           \
                 }                \
@@ -366,7 +366,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
         }                        \
     } while (0)
 
-#define EXCEPT_RETHROW exC_unwind(exC_last_exception(), NULL)
+#define EXCEPT_RETHROW exC_unwind(exC_last_exception(), exC_last_exception_what(), NULL)
 
 #define EXCEPT_VAR(_var) EXCEPT_NAMESPACE(EXCEPT_CAT(saved_var_, _var))
 
@@ -376,7 +376,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
 
 #define NOEXCEPT EXCEPT_TRY_WITH_ARG(EXCEPT_CAT(__LINE__, __COUNTER__)) {
 
-#define END_NOEXCEPT } EXCEPT_CATCH_UNNAMED { EXCEPT_TERMINATE(NOEXCEPT_TERMINATE_DEFAULT_ARGS); } EXCEPT_END_TRY;
+#define END_NOEXCEPT } EXCEPT_CATCH_UNNAMED { EXCEPT_TERMINATE(TERMINATE_DEFAULT_ERROR_ARGS); } EXCEPT_END_TRY;
 
 #define EXCEPT_WHAT exC_last_exception_what()
 
@@ -559,6 +559,7 @@ static_assert(EXCEPT_TERM_HANDLER_ARGC <= 8, "EXCEPT_TERM_HANDLER_TYPE_LIST must
 // User-usable API
 /**
  * @brief Flags that can be passed to `exC_global_setup`.
+ * @note Nothing for now but will be used in the future.
  * @details
  * - `FLAG_COUNT` is the number of flags.
  */
@@ -568,6 +569,7 @@ enum exC_flags
 };
 /**
  * @brief Flags that can be passed to `exC_global_setup`.
+ * @note Nothing for now but will be used in the future.
  * @details
  * - `FLAG_COUNT` is the number of flags.
  */
@@ -592,6 +594,20 @@ EXCEPT_API int exC_global_setup(size_t stack_size, exC_flags_t flags);
  * @return 0 on success, non-0 on failure.
  */
 EXCEPT_API int exC_thrd_setup(void);
+
+/**
+ * @fn void exC_thrd_deinit(void)
+ * @brief Deinitialize the exception handling system for the calling thread.
+ * @note This function should be called for every thread that used the exception handling system.
+ */
+EXCEPT_API void exC_thrd_deinit(void);
+
+/**
+ * @fn void exC_global_deinit(void)
+ * @brief Deinitialize the exception handling system.
+ * @note This function should be called after every thread that used the exception handling system has been deinitialized.
+ */
+EXCEPT_API void exC_global_deinit(void);
 
 /**
  * @fn int exC_set_term_handler(term_handler_t handler)
