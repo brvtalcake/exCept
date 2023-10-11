@@ -113,7 +113,7 @@ Else you can manually use `exC_thrd_deinit()` to clean thread-specific data for 
 
 In a similar way, in case you want to stop the exception handling system at a particular point of execution, you can call `exC_global_deinit()` to delete the TSS keys.[^1]
 
-[^1] At this point, no mechanism has been implemented to stop and restart the exception handling system.
+[^1]: At this point, no mechanism has been implemented to stop and restart the exception handling system.
 
 ## More details
 
@@ -317,7 +317,7 @@ In the future, it may be possible to :
 - Provide a flag to select a mono-threaded implementation
 - Use a custom blocking hastable implementation to not depend on any TSS implementation, and let the user specify a mutex type (see the comment at the top of [exCept.c](./exCept.c#L34))
 
-[^2] Windows implementation is not yet perfect and probably needs to be tested
+[^2]: Windows implementation is not yet perfect and probably needs to be tested
 
 ## Documentation
 
