@@ -7,6 +7,10 @@ exCept is a two files C "library" providing multithread-aware exception handling
 > `FINALLY` is not yet supported, and probably won't ever be supported.
 > However, if you want a (non-portable - only GCC for now) `DEFER` macro (that could "imitate" a `FINALLY`), check [this little repo](https://github.com/brvtalcake/defer) of mine.
 
+> **NOTE**
+>
+> TODO : I recently came across [this article](http://groups.di.unipi.it/~nids/docs/longjump_try_trow_catch.html) which presents a duff device technique with a `FINALLY` implementation. Port it to exCept.
+
 ## Usage
 
 First thing you need to do is to set the size of the jmp_buf stack (a kind of exception stack, in our case, or even the amount of `TRY / CATCH` statements you can nest), with :
